@@ -1,0 +1,56 @@
+import streamlit as st
+import requests
+import json
+
+# --- App Title ---
+st.title('🌤️ Simple Weather App')
+
+# --- Configuration ---
+# Replace with your actual OpenWeatherMap API key
+API_KEY = 'REPLACE_WITH_YOUR_OPENWEATHERMAP_API_KEY'  # <-- Replace this!
+BASE_URL = 'http://api.openweathermap.org/data/2.5/weather?'
+
+# --- Input ---
+city_name = st.text_input('Enter city name:')
+
+# --- Main Logic ---
+if city_name:
+    # Construct the API URL
+    complete_url = f"{BASE_URL}appid={API_KEY}&q={city_name}&units=metric"
+
+    try:
+        # Make the API request
+        response = requests.get(complete_url)
+        data = response.json()
+
+        # Check response status
+        if response.status_code == 200 and data.get("cod") == 200:
+            # Extract weather info
+            main = data['main']
+            weather = data['weather'][0]
+
+            temperature = main['temp']
+            pressure = main['pressure']
+            humidity = main['humidity']
+            description = weather['description']
+            icon_code = weather['icon']
+
+            # Icon URL
+            icon_url = f"http://openweathermap.org/img/wn/{icon_code}@2x.png"
+
+            # Display results
+            st.subheader(f"Weather in {city_name.title()}")
+            st.write(f"🌡️ Temperature: {temperature} °C")
+            st.write(f"💧 Humidity: {humidity} %")
+            st.write(f"🔽 Pressure: {pressure} hPa")
+            st.write(f"📖 Condition: {description.capitalize()}")
+            st.image(icon_url, caption=description.capitalize())
+
+        else:
+            error_msg = data.get("message", "City not found.")
+            st.error(f" Error: {error_msg}")
+
+    except requests.exceptions.RequestException as e:
+        st.error(f" Network error: {e}")
+
+ 
